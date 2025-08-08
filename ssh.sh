@@ -10,6 +10,19 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
+#apt换源
+cat > /etc/apt/sources.list << 'EOL'
+deb https://mirrors.cloud.tencent.com/debian/ bookworm main non-free non-free-firmware contrib
+deb-src https://mirrors.cloud.tencent.com/debian/ bookworm main non-free non-free-firmware contrib
+deb https://mirrors.cloud.tencent.com/debian-security/ bookworm-security main
+deb-src https://mirrors.cloud.tencent.com/debian-security/ bookworm-security main
+deb https://mirrors.cloud.tencent.com/debian/ bookworm-updates main non-free non-free-firmware contrib
+deb-src https://mirrors.cloud.tencent.com/debian/ bookworm-updates main non-free non-free-firmware contrib
+deb https://mirrors.cloud.tencent.com/debian/ bookworm-backports main non-free non-free-firmware contrib
+deb-src https://mirrors.cloud.tencent.com/debian/ bookworm-backports main non-free non-free-firmware contrib
+EOL
+apt update
+
 # 备份原始配置文件
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
@@ -35,6 +48,13 @@ echo $PUBLIC_KEY > $ROOT_SSH_DIR/authorized_keys
 # 设置权限
 chmod 700 $ROOT_SSH_DIR
 chmod 600 $ROOT_SSH_DIR/authorized_keys
+
+#设置防火墙
+apt install -y ufw
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+ufw enable
 
 # 重启SSH服务
 systemctl restart sshd
